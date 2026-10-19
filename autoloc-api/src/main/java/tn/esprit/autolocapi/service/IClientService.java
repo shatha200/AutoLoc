@@ -7,12 +7,9 @@ import tn.esprit.autolocapi.domain.Client;
 import java.util.List;
 
 public interface IClientService {
-    List<Client> retrieveAllClients();
-    Client addClient(Client c);
-    Client updateClient(Client c);
-    Client retrieveClient(Long idClient);
-    void removeClient(Long idClient);
-    List<Client> addClients (List<Client> clients);
-
-
+    Client create(Client client);
+    Client findById(Long id);
+    List<Client> findAll();
+    Client update(Long id, Client client);
+    void deleteById(Long id);
 }

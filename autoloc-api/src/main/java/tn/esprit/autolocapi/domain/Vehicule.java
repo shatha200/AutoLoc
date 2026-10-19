@@ -43,4 +43,9 @@ public class Vehicule {
 
     @OneToMany(mappedBy = "vehicule")
     private List<Reservation> reservations;
+
+    public Long getId() {
+        return getIdVehicule();
+    }
+
 }

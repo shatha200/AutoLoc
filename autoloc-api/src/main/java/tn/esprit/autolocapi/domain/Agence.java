@@ -34,4 +34,8 @@ public class Agence {
     private List<Employe> employes;
     @OneToMany(mappedBy = "agence")
     private List<Vehicule> vehicules;
+
+    public Long getId() {
+        return idAgence;
+    }
 }

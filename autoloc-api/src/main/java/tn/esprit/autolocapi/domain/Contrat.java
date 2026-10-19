@@ -36,4 +36,8 @@ public class Contrat {
     @OneToMany(mappedBy = "contrat",
             cascade = CascadeType.ALL)
     private List<Paiement> paiements;
+
+    public Long getId() {
+        return idContrat;
+    }
 }

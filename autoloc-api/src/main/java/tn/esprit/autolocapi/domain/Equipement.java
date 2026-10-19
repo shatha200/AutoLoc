@@ -26,4 +26,6 @@ public class Equipement {
 
     @ManyToMany(mappedBy = "equipements")
     private List<Vehicule> vehicules;
+
+
 }

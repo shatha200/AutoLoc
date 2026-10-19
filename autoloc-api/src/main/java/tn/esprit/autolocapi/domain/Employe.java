@@ -30,4 +30,12 @@ public class Employe {
 
     @ManyToOne
     private Agence agence;
+
+    public Long getId() {
+        return idEmploye;
+    }
+
+    public RoleEmploye getPoste() {
+        return role;
+    }
 }
