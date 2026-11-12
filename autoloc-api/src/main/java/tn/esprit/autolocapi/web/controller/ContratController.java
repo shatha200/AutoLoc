@@ -1,11 +1,11 @@
 package tn.esprit.autolocapi.web.controller;
 
-import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,8 +17,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import tn.esprit.autolocapi.domain.Contrat;
+import tn.esprit.autolocapi.dto.ContratDTO;
 import tn.esprit.autolocapi.service.IContratService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/contrats")
@@ -29,49 +31,49 @@ public class ContratController {
     private final IContratService contratService;
 
     @Operation(summary = "Lister les contrats")
-    @ApiResponse(responseCode = "200", description = "Liste retournée")
+    @ApiResponse(responseCode = "200", description = "Liste retournée sous forme de DTO")
     @GetMapping
-    public List<Contrat> findAll() {
+    public List<ContratDTO> findAll() {
         return contratService.findAll();
     }
 
     @Operation(summary = "Consulter un contrat")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Contrat trouvé(e)"),
+            @ApiResponse(responseCode = "200", description = "Contrat trouvé"),
             @ApiResponse(responseCode = "404", description = "Contrat introuvable")})
     @GetMapping("/{id}")
-    public Contrat findById(@Parameter(description = "Identifiant") @PathVariable Long id) {
+    public ContratDTO findById(@Parameter(description = "Identifiant du contrat") @PathVariable Long id) {
         return contratService.findById(id);
     }
 
     @Operation(summary = "Créer un contrat")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Contrat créé(e)"),
+            @ApiResponse(responseCode = "201", description = "Contrat créé"),
             @ApiResponse(responseCode = "400", description = "Données invalides")})
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Contrat create(@RequestBody Contrat contrat) {
-        return contratService.create(contrat);
+    public ContratDTO create(@Parameter(description = "Données du contrat à créer") @Valid @RequestBody ContratDTO contratDTO) {
+        return contratService.create(contratDTO);
     }
 
     @Operation(summary = "Modifier un contrat")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Contrat modifié(e)"),
+            @ApiResponse(responseCode = "200", description = "Contrat modifié"),
             @ApiResponse(responseCode = "400", description = "Données invalides"),
             @ApiResponse(responseCode = "404", description = "Contrat introuvable")})
     @PutMapping("/{id}")
-    public Contrat update(@Parameter(description = "Identifiant") @PathVariable Long id,
-                      @RequestBody Contrat contrat) {
-        return contratService.update(id, contrat);
+    public ContratDTO update(@Parameter(description = "Identifiant du contrat") @PathVariable Long id,
+                             @Parameter(description = "Nouvelles données du contrat") @Valid @RequestBody ContratDTO contratDTO) {
+        return contratService.update(id, contratDTO);
     }
 
     @Operation(summary = "Supprimer un contrat")
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Contrat supprimé(e)"),
+            @ApiResponse(responseCode = "204", description = "Contrat supprimé"),
             @ApiResponse(responseCode = "404", description = "Contrat introuvable")})
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteById(@Parameter(description = "Identifiant") @PathVariable Long id) {
+    public void deleteById(@Parameter(description = "Identifiant du contrat") @PathVariable Long id) {
         contratService.deleteById(id);
     }
 }

@@ -1,48 +1,70 @@
-
 package tn.esprit.autolocapi.service;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import tn.esprit.autolocapi.domain.Reservation;
+import tn.esprit.autolocapi.dto.ReservationDTO;
 import tn.esprit.autolocapi.exception.ResourceNotFoundException;
+import tn.esprit.autolocapi.mapper.ReservationMapper;
+import tn.esprit.autolocapi.repository.IClientRepository;
 import tn.esprit.autolocapi.repository.IReservationRepository;
+import tn.esprit.autolocapi.repository.IVehiculeRepository;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ReservationServiceImpl implements IReservationService {
 
     private final IReservationRepository reservationRepository;
+    private final IVehiculeRepository vehiculeRepository;
+    private final IClientRepository clientRepository;
+    private final ReservationMapper reservationMapper;
 
     @Override
-    public Reservation create(Reservation reservation) {
-        if (reservation.getIdReservation() != null) {
-            throw new IllegalArgumentException(
-                    "Un nouvel élément ne doit pas avoir d'identifiant");
+    public ReservationDTO create(ReservationDTO reservationDTO) {
+        if (reservationDTO.getIdReservation() != null) {
+            throw new IllegalArgumentException("Une nouvelle réservation ne doit pas avoir d'identifiant");
         }
-        verifier(reservation);
-        return reservationRepository.save(reservation);
+        verifier(reservationDTO);
+        Reservation reservation = reservationMapper.toEntity(reservationDTO);
+        if (reservationDTO.getVehiculeId() != null) {
+            vehiculeRepository.findById(reservationDTO.getVehiculeId()).ifPresent(reservation::setVehicule);
+        }
+        if (reservationDTO.getClientId() != null) {
+            clientRepository.findById(reservationDTO.getClientId()).ifPresent(reservation::setClient);
+        }
+        Reservation saved = reservationRepository.save(reservation);
+        return reservationMapper.toDto(saved);
     }
 
     @Override
-    public Reservation findById(Long id) {
-        return reservationRepository.findById(id)
+    public ReservationDTO findById(Long id) {
+        Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reservation", id));
+        return reservationMapper.toDto(reservation);
     }
 
     @Override
-    public List<Reservation> findAll() {
-        return reservationRepository.findAll();
+    public List<ReservationDTO> findAll() {
+        return reservationMapper.toDtoList(reservationRepository.findAll());
     }
 
     @Override
-    public Reservation update(Long id, Reservation reservation) {
-        Reservation existant = findById(id);
-        verifier(reservation);
-        existant.setDateDebut(reservation.getDateDebut());
-        existant.setDateFin(reservation.getDateFin());
-        existant.setStatut(reservation.getStatut());
-        return reservationRepository.save(existant);
+    public ReservationDTO update(Long id, ReservationDTO reservationDTO) {
+        Reservation existant = reservationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation", id));
+        verifier(reservationDTO);
+        existant.setDateDebut(reservationDTO.getDateDebut());
+        existant.setDateFin(reservationDTO.getDateFin());
+        existant.setStatut(reservationDTO.getStatut());
+        if (reservationDTO.getVehiculeId() != null) {
+            vehiculeRepository.findById(reservationDTO.getVehiculeId()).ifPresent(existant::setVehicule);
+        }
+        if (reservationDTO.getClientId() != null) {
+            clientRepository.findById(reservationDTO.getClientId()).ifPresent(existant::setClient);
+        }
+        return reservationMapper.toDto(reservationRepository.save(existant));
     }
 
     @Override
@@ -53,9 +75,9 @@ public class ReservationServiceImpl implements IReservationService {
         reservationRepository.deleteById(id);
     }
 
-    private void verifier(Reservation reservation) {
-        if (reservation.getDateDebut() != null && reservation.getDateFin() != null
-                && reservation.getDateFin().isBefore(reservation.getDateDebut())) {
+    private void verifier(ReservationDTO reservationDTO) {
+        if (reservationDTO.getDateDebut() != null && reservationDTO.getDateFin() != null
+                && reservationDTO.getDateFin().isBefore(reservationDTO.getDateDebut())) {
             throw new IllegalArgumentException("La date de fin est antérieure à la date de début");
         }
     }

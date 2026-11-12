@@ -1,50 +1,57 @@
 package tn.esprit.autolocapi.service;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import tn.esprit.autolocapi.domain.Client;
+import tn.esprit.autolocapi.dto.ClientDTO;
 import tn.esprit.autolocapi.exception.ResourceNotFoundException;
+import tn.esprit.autolocapi.mapper.ClientMapper;
 import tn.esprit.autolocapi.repository.IClientRepository;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ClientServiceImpl implements IClientService {
 
     private final IClientRepository clientRepository;
+    private final ClientMapper clientMapper;
 
     @Override
-    public Client create(Client client) {
-        if (client.getIdClient() != null) {
-            throw new IllegalArgumentException(
-                    "Un nouvel élément ne doit pas avoir d'identifiant");
+    public ClientDTO create(ClientDTO clientDTO) {
+        if (clientDTO.getIdClient() != null) {
+            throw new IllegalArgumentException("Un nouveau client ne doit pas avoir d'identifiant");
         }
-        verifier(client);
-        return clientRepository.save(client);
+        verifier(clientDTO);
+        Client client = clientMapper.toEntity(clientDTO);
+        Client saved = clientRepository.save(client);
+        return clientMapper.toDto(saved);
     }
 
     @Override
-    public Client findById(Long id) {
-        return clientRepository.findById(id)
+    public ClientDTO findById(Long id) {
+        Client client = clientRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Client", id));
+        return clientMapper.toDto(client);
     }
 
     @Override
-    public List<Client> findAll() {
-        return clientRepository.findAll();
+    public List<ClientDTO> findAll() {
+        return clientMapper.toDtoList(clientRepository.findAll());
     }
 
     @Override
-    public Client update(Long id, Client client) {
-        Client existant = findById(id);
-        verifier(client);
-        existant.setNom(client.getNom());
-        existant.setPrenom(client.getPrenom());
-        existant.setEmail(client.getEmail());
-        existant.setTelephone(client.getTelephone());
-        existant.setNumPermis(client.getNumPermis());
-        existant.setDateInscription(client.getDateInscription());
-        return clientRepository.save(existant);
+    public ClientDTO update(Long id, ClientDTO clientDTO) {
+        Client existant = clientRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Client", id));
+        verifier(clientDTO);
+        existant.setNom(clientDTO.getNom());
+        existant.setPrenom(clientDTO.getPrenom());
+        existant.setEmail(clientDTO.getEmail());
+        existant.setTelephone(clientDTO.getTelephone());
+        existant.setNumPermis(clientDTO.getNumPermis());
+        existant.setDateInscription(clientDTO.getDateInscription());
+        return clientMapper.toDto(clientRepository.save(existant));
     }
 
     @Override
@@ -55,11 +62,11 @@ public class ClientServiceImpl implements IClientService {
         clientRepository.deleteById(id);
     }
 
-    private void verifier(Client client) {
-        if (client.getNom() == null || client.getNom().isBlank()) {
+    private void verifier(ClientDTO clientDTO) {
+        if (clientDTO.getNom() == null || clientDTO.getNom().isBlank()) {
             throw new IllegalArgumentException("Le nom du client est obligatoire");
         }
-        if (client.getEmail() == null || client.getEmail().isBlank()) {
+        if (clientDTO.getEmail() == null || clientDTO.getEmail().isBlank()) {
             throw new IllegalArgumentException("L'e-mail du client est obligatoire");
         }
     }
