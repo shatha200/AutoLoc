@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,11 +16,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import tn.esprit.autolocapi.dto.ContratDTO;
 import tn.esprit.autolocapi.service.IContratService;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -76,4 +79,27 @@ public class ContratController {
     public void deleteById(@Parameter(description = "Identifiant du contrat") @PathVariable Long id) {
         contratService.deleteById(id);
     }
+
+    // =========================================================================
+    // Endpoints d'affectation
+    // =========================================================================
+
+    @Operation(summary = "Affecter un contrat à une réservation",
+               description = "Crée un contrat et l'affecte automatiquement à la première réservation CONFIRMEE sans contrat. "
+                       + "Le montant total est calculé à partir du tarif journalier et de la durée.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Contrat créé et affecté à la réservation"),
+            @ApiResponse(responseCode = "400", description = "Aucune réservation disponible ou dates invalides")})
+    @PostMapping("/affecter-reservation")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ContratDTO affecterContratAReservation(
+            @Parameter(description = "Date de signature (format yyyy-MM-dd)")
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateSignature,
+            @Parameter(description = "Date de début de location (format yyyy-MM-dd)")
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateDebut,
+            @Parameter(description = "Date de fin de location (format yyyy-MM-dd)")
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFin) {
+        return contratService.affecterContratAReservation(dateSignature, dateDebut, dateFin);
+    }
 }
+

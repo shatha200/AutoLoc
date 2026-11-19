@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import tn.esprit.autolocapi.dto.VehiculeDTO;
@@ -76,4 +77,34 @@ public class VehiculeController {
     public void deleteById(@Parameter(description = "Identifiant du véhicule") @PathVariable Long id) {
         vehiculeService.deleteById(id);
     }
+
+    // =========================================================================
+    // Endpoints d'affectation
+    // =========================================================================
+
+    @Operation(summary = "Affecter un équipement à un véhicule",
+               description = "Associe l'équipement identifié par idEquipement au véhicule identifié par idVehicule")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Équipement affecté au véhicule"),
+            @ApiResponse(responseCode = "400", description = "Équipement déjà associé"),
+            @ApiResponse(responseCode = "404", description = "Véhicule ou équipement introuvable")})
+    @PutMapping("/{idVehicule}/equipements/{idEquipement}")
+    public VehiculeDTO affecterVehiculeAEquipement(
+            @Parameter(description = "Identifiant du véhicule") @PathVariable Long idVehicule,
+            @Parameter(description = "Identifiant de l'équipement") @PathVariable Long idEquipement) {
+        return vehiculeService.affecterVehiculeAEquipement(idVehicule, idEquipement);
+    }
+
+    @Operation(summary = "Affecter une maintenance à un véhicule",
+               description = "Crée une maintenance sur le véhicule identifié par son immatriculation et passe son statut à MAINTENANCE")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Maintenance créée et véhicule mis à jour"),
+            @ApiResponse(responseCode = "400", description = "Immatriculation introuvable")})
+    @PutMapping("/maintenance")
+    public VehiculeDTO affecterMaintenanceAvehicule(
+            @Parameter(description = "Description de la maintenance") @RequestParam String description,
+            @Parameter(description = "Immatriculation du véhicule") @RequestParam String immatriculation) {
+        return vehiculeService.affecterMaintenanceAvehicule(description, immatriculation);
+    }
 }
+

@@ -15,9 +15,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import tn.esprit.autolocapi.dto.ReservationDTO;
+import tn.esprit.autolocapi.dto.ReservationResponseDTO;
+import tn.esprit.autolocapi.dto.ReservationWithContratRequestDTO;
 import tn.esprit.autolocapi.service.IReservationService;
 
 import java.util.List;
@@ -76,4 +79,35 @@ public class ReservationController {
     public void deleteById(@Parameter(description = "Identifiant de la réservation") @PathVariable Long id) {
         reservationService.deleteById(id);
     }
+
+    // =========================================================================
+    // Endpoints d'affectation
+    // =========================================================================
+
+    @Operation(summary = "Affecter une réservation à un client",
+               description = "Associe la réservation identifiée par son id au client trouvé par nom et prénom")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Client affecté à la réservation"),
+            @ApiResponse(responseCode = "400", description = "Client introuvable avec ce nom/prénom"),
+            @ApiResponse(responseCode = "404", description = "Réservation introuvable")})
+    @PutMapping("/{idReservation}/affecter-client")
+    public ReservationResponseDTO affecterReservationAClient(
+            @Parameter(description = "Identifiant de la réservation") @PathVariable Long idReservation,
+            @Parameter(description = "Nom du client") @RequestParam String nom,
+            @Parameter(description = "Prénom du client") @RequestParam String prenom) {
+        return reservationService.affecterReservationAClient(idReservation, nom, prenom);
+    }
+
+    @Operation(summary = "Créer une réservation et son contrat associé",
+               description = "Crée atomiquement une réservation et son contrat. Le montant total est calculé automatiquement.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Réservation et contrat créés"),
+            @ApiResponse(responseCode = "400", description = "Données invalides")})
+    @PostMapping("/avec-contrat")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ReservationResponseDTO creerReservationEtContratAssocie(
+            @Parameter(description = "Données de la réservation et du contrat") @Valid @RequestBody ReservationWithContratRequestDTO requestDTO) {
+        return reservationService.creerReservationEtContratAssocie(requestDTO);
+    }
 }
+
